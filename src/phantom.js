@@ -28,14 +28,15 @@ export default class Phantom {
      *
      * @param args command args to pass to phantom process
      */
-    constructor(args = []) {
+    constructor(args = [], phantomBin) {
         if (!Array.isArray(args)) {
             throw new Error('Unexpected type of parameters. Expecting args to be array.');
         }
 
+        let pathToPhantom = phantomBin || phantomjs.path;
         let pathToShim = path.normalize(__dirname + '/shim.js');
-        logger.debug(`Starting ${phantomjs.path} ${args.concat([pathToShim]).join(' ')}`);
-        this.process = spawn(phantomjs.path, args.concat([pathToShim]));
+        logger.debug(`Starting ${pathToPhantom} ${args.concat([pathToShim]).join(' ')}`);
+        this.process = spawn(pathToPhantom, args.concat([pathToShim]));
         this.commands = new Map();
         this.events = new Map();
 
@@ -73,7 +74,7 @@ export default class Phantom {
         this.process.stderr.on('data', data => logger.error(data.toString('utf8')));
         this.process.on('exit', code => logger.debug(`Child exited with code {${code}}`));
         this.process.on('error', error => {
-            logger.error(`Could not spawn [${phantomjs.path}] executable. Please make sure phantomjs is installed correctly.`);
+            logger.error(`Could not spawn [${pathToPhantom}] executable. Please make sure phantomjs is installed correctly.`);
             logger.error(error);
             process.exit(1);
         });
